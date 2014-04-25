@@ -8,11 +8,11 @@ and open the template in the editor.
     Author     : denslo
 */
 
-#map-canvas{
+#new_game_map-canvas{
     height: 65%;
 }
 
-.page{
+.ui-content, .page{
     height: 100%;
 }
 

@@ -7,11 +7,13 @@
 var map;
 
 function initialize() {
+    
     var mapOptions = {
-        zoom: 23,
+        zoom: 24,
         disableDefaultUI: true
+
     };
-    map = new google.maps.Map(document.getElementById('map-canvas'),
+    map = new google.maps.Map(document.getElementById('new_game_map-canvas'),
             mapOptions);
 
     // Try HTML5 geolocation
@@ -20,11 +22,12 @@ function initialize() {
             var pos = new google.maps.LatLng(position.coords.latitude,
                     position.coords.longitude);
 
-            /*var infowindow = new google.maps.InfoWindow({
-             map: map,
-             position: pos,
-             content: 'Location found using HTML5.'
-             });*/
+            var marker = new google.maps.Marker({
+                position: pos,
+                map: map,
+                title: 'Center of the game',
+                draggable: true
+            });
 
             map.setCenter(pos);
         }, function() {
@@ -35,21 +38,11 @@ function initialize() {
         handleNoGeolocation(false);
     }
 
-    map.setOptions({draggable: false});
+    //map.setOptions({draggable: false});
 
-    google.maps.event.addListener(map, "click", function(e) {
-
-        //lat and lng is available in e object
-        var latLng = e.latLng;
-        var image = 'img/red_flag.png';
-        var beachMarker = new google.maps.Marker({
-            position: latLng,
-            map: map,
-            icon: image
-        });
-
-    });
+    google.maps.event.addListener(map, "click", setStake(e));
 }
+;
 
 function handleNoGeolocation(errorFlag) {
     if (errorFlag) {
@@ -64,12 +57,21 @@ function handleNoGeolocation(errorFlag) {
         content: content
     };
 
-    //var infowindow = new google.maps.InfoWindow(options);
     map.setCenter(options.position);
 }
 
-google.maps.event.addDomListener(window, 'load', initialize);
+$(function() {
+    $('#new_game_page').on("pageshow", initialize);
+});
 
-function setStake(latLng) {
-    
+function setStake(event) {
+    //lat and lng is available in e object
+    var latLng = e.latLng;
+    var image = 'img/red_flag.png';
+    var beachMarker = new google.maps.Marker({
+        position: latLng,
+        map: map,
+        icon: image
+    });
 }
+;
