@@ -1,0 +1,40 @@
+/*
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+*/
+/* 
+    Created on : 25/04/2014, 12:50:55
+    Author     : denslo
+*/
+
+#new_game_map-canvas{
+    height: 65%;
+}
+
+#map-canvas {
+   height: 80%;
+}
+
+.ui-content, .page{
+    height: 100%;
+}
+
+body{
+    height: 100%;
+}
+
+a[title="Click to see this area on Google Maps"], a[title="Report errors in the road map or imagery to Google"]{
+	display:none !important;
+}
+
+
+.ui-radio:nth-child(1) .ui-btn-active{
+    background-color:red;
+    border-color: red;
+}
+
+.ui-radio:nth-child(2) .ui-btn-active{
+    background-color:blue;
+    border-color: blue;
+}
