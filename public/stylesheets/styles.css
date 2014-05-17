@@ -28,6 +28,9 @@ a[title="Click to see this area on Google Maps"], a[title="Report errors in the 
 	display:none !important;
 }
 
+.gmnoprint {
+    visibility: hidden !important;
+}
 
 .ui-radio:nth-child(1) .ui-btn-active{
     background-color:red;

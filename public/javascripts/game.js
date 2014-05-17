@@ -1,19 +1,34 @@
 var currentGameID;
 var map;
-var tempStakeList = [];
+var blueStakeList = [];
+var redStakeList = [];
+var redTriangleCounter = 0;
+var blueTriangleCounter = 0;
 var currentTriangle;
 var currentLine;
 var mapText;
 var isAnimatedTrianle = false;
 var gameInitData;
 var gameData;
+var socket;
 //-------------------------
 
 function startGame(gameData) {
     gameInitData = gameData;
     gameInitData.centerMap = JSON.parse(gameData.centerMap);
     $.mobile.changePage("#game_page");
-    setInterval(updateGame, 500);
+
+    //
+    socket = io.connect('/');
+    socket.on('newConnection', function(data) {
+        socket.emit('myGameID', {id: currentGameID});
+    });
+    socket.on('newStake', function(data) {
+        drawStake(data);
+    });
+    socket.on('victory', function(data) {
+        victory(data);
+    });
 }
 
 
@@ -40,6 +55,8 @@ function initializeGameMap() {
     };
     map = new google.maps.Map(document.getElementById('map-canvas'), mapOptions);
     google.maps.event.addListener(map, "click", sendStake);
+
+    updateGame();
 }
 ;
 
@@ -68,8 +85,8 @@ function sendStake(e) {
         pos: JSON.stringify(latLng),
         user_id: userID
     }
-    post('setStake', data, function() {
-    });
+    socket.emit('setStake', data);
+    post('setStake', data, function() {});
 }
 
 function updateGameMap(data) {
@@ -80,6 +97,7 @@ function updateGameMap(data) {
     gameData.allDrawing = [];
 
     for (var i = 0; i < data.stakes.length; ++i) {
+        
         var position = JSON.parse(data.stakes[i].pos);
         var image = 'images/' + data.stakes[i].team + '_flag_small.png';
         var marker = new google.maps.Marker({
@@ -88,10 +106,39 @@ function updateGameMap(data) {
             icon: image
         });
         gameData.allDrawing.push(marker);
+        
+        
+        if (data.stakes[i].team === "red") {
+            redStakeList.push(marker);
+        } else {
+            blueStakeList.push(marker);
+        }
+    }
+    
+    if (redStakeList.length == 2) {
+        var line = new google.maps.Polyline({
+            strokeColor: "red",
+            strokeWeight: 1.5,
+            geodesic: true, //set to false if you want straight line instead of arc
+            setPath: [redStakeList[0].position, redStakeList[1].position],
+            map: map
+        });
+    }
+    
+    if (blueStakeList.length == 2) {
+        var line = new google.maps.Polyline({
+            strokeColor: "blue",
+            strokeOpacity: 1,
+            strokeWeight: 1.5,
+            geodesic: true, //set to false if you want straight line instead of arc
+            setPath: [blueStakeList[0].position, blueStakeList[1].position],
+            map: map
+        });
     }
 
+
     for (var i = 0; i < data.triangles.length; ++i) {
-        
+
         var pos1 = JSON.parse(data.triangles[i].pos1);
         var pos2 = JSON.parse(data.triangles[i].pos2);
         var pos3 = JSON.parse(data.triangles[i].pos3);
@@ -109,6 +156,11 @@ function updateGameMap(data) {
             fillOpacity: 0.5,
             map: map
         });
+        if (data.triangles[i].team === "red") {
+            redTriangleCounter++;
+        } else {
+            blueTriangleCounter++;
+        }
         gameData.allDrawing.push(triangle);
     }
 
@@ -179,6 +231,12 @@ function handleNoGeolocation(errorFlag) {
 
     map.setCenter(options.position);
 }
+
+
+function victory(data) {
+    //clearListeners(map, 'click');
+    showText(data.victory.toUpperCase() + " TEAM WINS!!", false);
+}
 //------------------------
 
 
@@ -187,28 +245,37 @@ function handleNoGeolocation(errorFlag) {
 
 
 
-/*
- function drawStake(e) {
- if (isAnimatedTrianle)
- return;
- tempStakeList.push(e.latLng);
- var latLng = e.latLng;
- var image = 'images/' + userTeam + '_flag_small.png';
- var beachMarker = new google.maps.Marker({
- position: latLng,
- map: map,
- icon: image
- });
- if (tempStakeList.length == 2) {
- isAnimatedTrianle = true;
- animateLine(0, 1, false);
- } else if (tempStakeList.length == 3) {
- isAnimatedTrianle = true;
- animateLine(1, 2, false);
- }
- };
- */
-function animateLine(i, j, stopflag) {
+
+function drawStake(data) {
+    if (isAnimatedTrianle)
+        return;
+    var pos = JSON.parse(data.pos);
+    var image = 'images/' + data.team + '_flag_small.png';
+    var marker = new google.maps.Marker({
+        position: new google.maps.LatLng(pos.k, pos.A),
+        map: map,
+        icon: image
+    });
+    var currentStakeList;
+    var currentColor = data.team;
+    if (currentColor === "red") {
+        redStakeList.push(marker);
+        currentStakeList = redStakeList;
+    } else{
+        blueStakeList.push(marker);
+        currentStakeList = blueStakeList;
+    }
+    
+    if (currentStakeList.length == 2) {
+        //isAnimatedTrianle = true;
+        animateLine(0, 1, false, currentStakeList, currentColor);
+    } else if (currentStakeList.length == 3) {
+        //isAnimatedTrianle = true;
+        animateLine(1, 2, false, currentStakeList, currentColor);
+    }
+};
+
+function animateLine(i, j, stopflag, stakeList, color) {
     var step = 0;
     var numSteps = 50; //Change this to set animation resolution
     var timePerStep = 3; //Change this to alter animation speed
@@ -218,23 +285,23 @@ function animateLine(i, j, stopflag) {
         }
         step++;
         currentLine = new google.maps.Polyline({
-            strokeColor: userTeam,
+            strokeColor: color,
             strokeOpacity: step / numSteps,
             strokeWeight: 1.5,
             geodesic: true, //set to false if you want straight line instead of arc
         });
 
-        var are_we_there_yet = google.maps.geometry.spherical.interpolate(tempStakeList[i], tempStakeList[j], step / numSteps);
-        currentLine.setPath([tempStakeList[i], are_we_there_yet]);
+        var are_we_there_yet = google.maps.geometry.spherical.interpolate(stakeList[i].position, stakeList[j].position, step / numSteps);
+        currentLine.setPath([stakeList[i].position, are_we_there_yet]);
         currentLine.setMap(map);
 
         if (step > numSteps) {
             clearInterval(interval);
             currentLine = null;
-            if (tempStakeList.length == 3 && stopflag == false) {
-                animateLine(2, 0, true);
+            if (stakeList.length == 3 && stopflag == false) {
+                animateLine(2, 0, true, stakeList, color);
             } else if (stopflag == true) {
-                animateTrianle();
+                animateTrianle(stakeList, color);
             } else {
                 isAnimatedTrianle = false;
             }
@@ -242,40 +309,7 @@ function animateLine(i, j, stopflag) {
     }, timePerStep);
 }
 
-function animateLine(i, j, stopflag) {
-    var step = 0;
-    var numSteps = 50; //Change this to set animation resolution
-    var timePerStep = 3; //Change this to alter animation speed
-    var interval = setInterval(function() {
-        if (currentLine != null) {
-            currentLine.setMap(null);
-        }
-        step++;
-        currentLine = new google.maps.Polyline({
-            strokeColor: userTeam,
-            strokeOpacity: step / numSteps,
-            strokeWeight: 1.5,
-            geodesic: true, //set to false if you want straight line instead of arc
-        });
-
-        var are_we_there_yet = google.maps.geometry.spherical.interpolate(tempStakeList[i], tempStakeList[j], step / numSteps);
-        currentLine.setPath([tempStakeList[i], are_we_there_yet]);
-        currentLine.setMap(map);
-
-        if (step > numSteps) {
-            clearInterval(interval);
-            currentLine = null;
-            if (tempStakeList.length == 3 && stopflag == false) {
-
-                animateLine(2, 0, true);
-            } else if (stopflag == true) {
-                animateTrianle();
-            }
-        }
-    }, timePerStep);
-}
-
-function animateTrianle() {
+function animateTrianle(stakeList, color) {
 
     var step = 0;
     var numSteps = 50; //Change this to set animation resolution
@@ -287,13 +321,12 @@ function animateTrianle() {
             currentTriangle.setMap(null);
         }
         step++;
-        console.log(step / 150);
         currentTriangle = new google.maps.Polygon({
-            paths: tempStakeList,
-            strokeColor: userTeam,
+            paths: [stakeList[0].position, stakeList[1].position, stakeList[2].position],
+            strokeColor: color,
             strokeOpacity: 1,
             strokeWeight: 2.5,
-            fillColor: userTeam,
+            fillColor: color,
             fillOpacity: step / 150,
         });
         currentTriangle.setMap(map);
@@ -301,15 +334,32 @@ function animateTrianle() {
         // break animation
         if (step > numSteps) {
             clearInterval(interval);
+            for (var i = 0; i < stakeList.length; i++) {
+                stakeList[i].setMap(null);
+            }
             currentTriangle = null;
-            tempStakeList = [];
+            if (color === "red") {
+                redTriangleCounter++;
+                redStakeList = [];        
+            } else {
+                blueStakeList = [];
+                blueTriangleCounter++;
+            }
+            
             isAnimatedTrianle = false;
-            showText("TRIANGLE CAPTURED!!");
+            if (redTriangleCounter === 3) {
+                socket.emit("victory", { victory: "red",game_id:currentGameID});
+            } else if (blueTriangleCounter === 3) {
+                socket.emit("victory", { victory: "blue",game_id:currentGameID});
+            } else {
+                showText("TRIANGLE CAPTURED!!", true);
+            }
+            
         }
     }, timePerStep);
 }
 
-function showText(text) {
+function showText(text, hideTextAfterrShow) {
     var step = 0;
     var numSteps = 50; //Change this to set animation resolution
     var timePerStep = 3; //Change this to alter animation speed
@@ -326,7 +376,9 @@ function showText(text) {
         // break animation
         if (step > numSteps) {
             clearInterval(interval);
-            setTimeout(hideText, 500);
+            if (hideTextAfterrShow) {
+                setTimeout(hideText, 500);
+            }
         }
     }, timePerStep);
 }
@@ -352,6 +404,3 @@ function hideText() {
         }
     }, timePerStep);
 }
-
-
-

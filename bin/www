@@ -4,6 +4,32 @@ var app = require('../app');
 
 app.set('port', process.env.PORT || 3000);
 
-var server = app.listen(app.get('port'), function() {
-  debug('Express server listening on port ' + server.address().port);
+var server = require('http').createServer(app);
+var io = require('socket.io').listen(server);
+
+server.listen(app.get('port'), function() {
+    debug('Express server listening on port ' + server.address().port);
+});
+
+var allSocket = {};
+
+io.sockets.on('connection', function(socket) {
+    socket.emit('newConnection', {});
+    socket.on('myGameID', function(data) {
+        var id = data.id;
+        if (!allSocket[id]) {
+            allSocket[id] = [];
+        }
+        allSocket[id].push(socket);
+    });
+    socket.on('setStake',function(data){
+        for (var i = 0; i < allSocket[data.game_id].length;i++){
+            allSocket[data.game_id][i].emit('newStake', data);
+        }
+    });
+    socket.on('victory',function(data){
+        for (var i = 0; i < allSocket[data.game_id].length;i++){
+            allSocket[data.game_id][i].emit('victory', data);
+        }
+    });
 });

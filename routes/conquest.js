@@ -22,7 +22,7 @@ router.post('/createNewGame', function(req, res) {
 
     collection.insert({
         "centerMap": centerMap,
-	"zoomMap": zoomMap,
+        "zoomMap": zoomMap,
         "gameName": gameName,
         "user": user,
         "stakes": stakes,
@@ -71,6 +71,8 @@ router.post('/joinGame', function(req, res) {
     var db = req.db;
     var gameCollection = db.get('gamecollection');
     var playerCollection = db.get('playercollection');
+    var stakCollection = db.get('stakcollection');
+    var triangleCollection = db.get('trianglecollection');
 
     gameCollection.findOne({_id: req.body.game_id}, function(e, item) {
 
@@ -87,10 +89,25 @@ router.post('/joinGame', function(req, res) {
 
 
         var retJson = {};
-        retJson["centerMap"] = item.centerMap;
-        retJson["zoomMap"] = parseInt(item.zoomMap);
 
-        res.send(retJson);
+        stakCollection.find({gameId: req.body.game_id}, function(e, stakes) {
+            retJson["stakes"] = stakes;
+
+            triangleCollection.find({gameId: req.body.game_id}, function(e, triangles) {
+                retJson["triangles"] = triangles;
+
+                playerCollection.find({gameId: req.body.game_id}, function(e, players) {
+                    retJson["players"] = players;
+
+                    retJson["centerMap"] = item.centerMap;
+                    retJson["zoomMap"] = parseInt(item.zoomMap);
+
+                    res.send(retJson);
+                });
+            });
+        });
+
+        //res.send(retJson);
     });
 });
 

@@ -4,10 +4,10 @@
         <title>conquest</title>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui"/>
-		<meta name="apple-mobile-web-app-capable" content="yes" />
-		<meta name="mobile-web-app-capable" content="yes"/>		
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="mobile-web-app-capable" content="yes"/>		
 
-		
+
         <link rel="stylesheet" href="javascripts/jquery.mobile-1.4.2/jquery.mobile-1.4.2.min.css" />
         <script src="javascripts/jQuery1.11.0.js" type="text/javascript"></script>
         <script src="javascripts/jquery.mobile-1.4.2/jquery.mobile-1.4.2.min.js" type="text/javascript"></script>
@@ -17,8 +17,9 @@
         <script src="javascripts/base.js" type="text/javascript"></script>
         <script src="javascripts/create.new.game.js" type="text/javascript"></script>
         <script src="javascripts/game.js" type="text/javascript"></script>
+        <script src="/socket.io/socket.io.js" type="text/javascript"></script>
         <link rel="stylesheet" href="stylesheets/styles.css" />
-        
+
     </head>
     <body>
         <div data-role="page" id="login_page" class="page">
@@ -32,10 +33,10 @@
                     <input id='user_id' type="hidden" disabled="disabled"><br>
                     <label for='create_game_team'>Choose Your Team:</label>
                     <fieldset id="create_game_team" data-role="controlgroup" data-mini="true" data-type="horizontal">
-                            <input type="radio" name="radio-mini" id="radio-mini-1" value="red" checked="checked" />
-                            <label for="radio-mini-1">Red</label>
-                            <input type="radio" name="radio-mini" id="radio-mini-2" value="blue"  />
-                            <label for="radio-mini-2">Blue</label>
+                        <input type="radio" name="radio-mini" id="radio-mini-1" value="red" checked="checked" />
+                        <label for="radio-mini-1">Red</label>
+                        <input type="radio" name="radio-mini" id="radio-mini-2" value="blue"  />
+                        <label for="radio-mini-2">Blue</label>
                     </fieldset>
                 </div>
                 <button onclick='login()'>Enter</button>
@@ -54,7 +55,7 @@
             </div>
         </div>
 
-        
+
         <div data-role="page" id="new_game_page" class="page" >
             <div data-role="header">
                 <a href="index.html" data-icon="back" data-rel="back">back</a>
@@ -66,7 +67,7 @@
             </div>
             <button onclick='setMap()'>Set Game Map</button>
         </div>
-        
+
         <div data-role="page" id="new_game_set_map_page" class="page" >
             <div data-role="header">
                 <a href="index.html" data-icon="back" data-rel="back">back</a>
@@ -76,10 +77,10 @@
             <button onclick='submitNewGame()'>Start</button>
         </div>
 
-        
-        
+
+
         <div data-role="page" id="game_page" class="page" style="position:relative;">
-		    <div data-role="header">
+            <div data-role="header">
                 <a href="index.html" data-icon="back" data-rel="back">back</a>
                 <h1>Game</h1>
             </div>
