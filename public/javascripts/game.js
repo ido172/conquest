@@ -88,7 +88,7 @@ function sendStakeButton() {
 			sendStake(object);
         }, function() {
             handleNoGeolocation(true);
-        });
+        }, {enableHighAccuracy: true} );
     } else {
         // Browser doesn't support Geolocation
         handleNoGeolocation(false);
