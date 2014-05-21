@@ -62,7 +62,7 @@ function initializeNewGameMap() {
             newGameMap.setCenter(pos);
         }, function() {
             handleNoGeolocation(true);
-        });
+        }, {enableHighAccuracy: true});
     } else {
         // Browser doesn't support Geolocation
         handleNoGeolocation(false);
