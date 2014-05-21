@@ -4,7 +4,8 @@ var router = express.Router();
 /* center_map
  * map_zoom
  * game_name
- * 
+ * total_area
+ *
  * return game id
  */
 router.post('/createNewGame', function(req, res) {
@@ -13,6 +14,7 @@ router.post('/createNewGame', function(req, res) {
     var centerMap = req.body.center_map;
     var zoomMap = req.body.map_zoom;
     var gameName = req.body.game_name;
+	var totalArea = req.body.total_area;
     var user = [];
     var stakes = [];
     var triangles = [];
@@ -26,7 +28,8 @@ router.post('/createNewGame', function(req, res) {
         "gameName": gameName,
         "user": user,
         "stakes": stakes,
-        "triangles": triangles
+        "triangles": triangles,
+		"totalArea": totalArea
     }, function(err, game) {
         if (err) {
             // If it failed, return error
@@ -101,6 +104,7 @@ router.post('/joinGame', function(req, res) {
 
                     retJson["centerMap"] = item.centerMap;
                     retJson["zoomMap"] = parseInt(item.zoomMap);
+					retJson["totalArea"] = parseInt(item.totalArea);
 
                     res.send(retJson);
                 });
