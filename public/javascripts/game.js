@@ -1,3 +1,5 @@
+var WIN_METER = 15;
+//google.maps.geometry
 var currentGameID;
 var map;
 var blueStakeList = [];
@@ -15,6 +17,7 @@ var socket;
 
 function startGame(gameData) {
     gameInitData = gameData;
+	WIN_METER = gameInitData.totalArea / 4;
     gameInitData.centerMap = JSON.parse(gameData.centerMap);
     $.mobile.changePage("#game_page");
 
@@ -74,6 +77,21 @@ function updateGame() {
         }, function() {
 
         });
+    }
+}
+
+function sendStakeButton() {
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(function(position) {
+            var pos = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
+			var object = {latLng: pos};
+			sendStake(object);
+        }, function() {
+            handleNoGeolocation(true);
+        });
+    } else {
+        // Browser doesn't support Geolocation
+        handleNoGeolocation(false);
     }
 }
 
@@ -156,10 +174,11 @@ function updateGameMap(data) {
             fillOpacity: 0.5,
             map: map
         });
+		var areaOfTriangle = google.maps.geometry.spherical.computeArea(triangle.getPath());
         if (data.triangles[i].team === "red") {
-            redTriangleCounter++;
+            redTriangleCounter += areaOfTriangle;
         } else {
-            blueTriangleCounter++;
+            blueTriangleCounter += areaOfTriangle;
         }
         gameData.allDrawing.push(triangle);
     }
@@ -321,8 +340,9 @@ function animateTrianle(stakeList, color) {
             currentTriangle.setMap(null);
         }
         step++;
+		var path = [stakeList[0].position, stakeList[1].position, stakeList[2].position];
         currentTriangle = new google.maps.Polygon({
-            paths: [stakeList[0].position, stakeList[1].position, stakeList[2].position],
+            paths: path,
             strokeColor: color,
             strokeOpacity: 1,
             strokeWeight: 2.5,
@@ -337,19 +357,21 @@ function animateTrianle(stakeList, color) {
             for (var i = 0; i < stakeList.length; i++) {
                 stakeList[i].setMap(null);
             }
-            currentTriangle = null;
+            
+			var areaOfTriangle = google.maps.geometry.spherical.computeArea(currentTriangle.getPath());
+			currentTriangle = null;
             if (color === "red") {
-                redTriangleCounter++;
+                redTriangleCounter += areaOfTriangle;
                 redStakeList = [];        
             } else {
                 blueStakeList = [];
-                blueTriangleCounter++;
+                blueTriangleCounter += areaOfTriangle;
             }
             
             isAnimatedTrianle = false;
-            if (redTriangleCounter === 3) {
+            if (redTriangleCounter >= WIN_METER) {
                 socket.emit("victory", { victory: "red",game_id:currentGameID});
-            } else if (blueTriangleCounter === 3) {
+            } else if (blueTriangleCounter >= WIN_METER) {
                 socket.emit("victory", { victory: "blue",game_id:currentGameID});
             } else {
                 showText("TRIANGLE CAPTURED!!", true);
