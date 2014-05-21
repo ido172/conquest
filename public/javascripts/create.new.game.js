@@ -18,9 +18,9 @@ function setMap() {
     }
     
 };
-function submitNewGame() {
-    //alert("submitNewGame");
+function submitNewGame() {	
     var data = {
+		total_area: computeRectangleArea(newGameMap.getBounds()),
         center_map: JSON.stringify(newGameMap.getCenter()),
         map_zoom: newGameMap.getZoom(),
         game_name: newGameName
@@ -28,6 +28,19 @@ function submitNewGame() {
 
     post('createNewGame', data, joinGame);	
 }
+
+var computeRectangleArea = function(bounds) {
+  if (!bounds) {
+    return 0;
+  }
+  var sw = bounds.getSouthWest();
+  var ne = bounds.getNorthEast();
+  var southWest = new google.maps.LatLng(sw.lat(), sw.lng());
+  var northEast = new google.maps.LatLng(ne.lat(), ne.lng());
+  var southEast = new google.maps.LatLng(sw.lat(), ne.lng());
+  var northWest = new google.maps.LatLng(ne.lat(), sw.lng());
+  return google.maps.geometry.spherical.computeArea([northEast, northWest, southWest, southEast]);
+};
 
 function initializeNewGameMap() {
     var mapOptions = {
