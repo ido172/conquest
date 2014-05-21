@@ -8,7 +8,7 @@ var bodyParser = require('body-parser');
 // mongodb
 var mongo = require('mongodb');
 var monk = require('monk');
-var db = monk('localhost:27017/conquest');
+var db = monk('mongodb://MongoLab-t:Xs8nofBwYvgR1APDP4C7I_uuWRBKjoVj1pGxfyl2H5E-@ds048537.mongolab.com:48537/MongoLab-t');
 
 var app = express();
 
