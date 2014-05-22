@@ -59,6 +59,7 @@ function joinGame(gameid){
                 game_id: currentGameID,
                 pos: JSON.stringify(pos)
             };
+			$.mobile.loading( 'show' );
             post('joinGame', data, startGame);
             
         }, function() {
