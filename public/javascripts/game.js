@@ -13,9 +13,13 @@ var isAnimatedTrianle = false;
 var gameInitData;
 var gameData;
 var socket;
+var isSendingStakeFlag = true;
 //-------------------------
 
 function startGame(gameData) {
+
+	
+
     gameInitData = gameData;
 	WIN_METER = gameInitData.totalArea / 4;
     gameInitData.centerMap = JSON.parse(gameData.centerMap);
@@ -37,11 +41,14 @@ function startGame(gameData) {
 
 function initializeGameMap() {
     //alert("initializeGameMap");
+	$.mobile.loading( 'show' );;
     gameData = {};
     gameData.players = [];
     gameData.stakes = [];
     gameData.triangles = [];
     gameData.allDrawing = [];
+	blueStakeList = [];
+	redStakeList = [];
     mapText = document.getElementById("onMapText");
     var mapOptions = {
         center: new google.maps.LatLng(gameInitData.centerMap.k, gameInitData.centerMap.A),
@@ -81,12 +88,20 @@ function updateGame() {
 }
 
 function sendStakeButton() {
+	if (isSendingStakeFlag == true) {
+		return;
+	}
+	
     if (navigator.geolocation) {
+		$.mobile.loading( 'show' );
+		isSendingStakeFlag = true;
         navigator.geolocation.getCurrentPosition(function(position) {
             var pos = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
 			var object = {latLng: pos};
 			sendStake(object);
         }, function() {
+			isSendingStakeFlag = false;
+			$.mobile.loading( 'hide' );
             handleNoGeolocation(true);
         }, {enableHighAccuracy: true} );
     } else {
@@ -104,6 +119,8 @@ function sendStake(e) {
         user_id: userID
     }
     socket.emit('setStake', data);
+	$.mobile.loading( 'hide' );;
+	isSendingStakeFlag = false;
     post('setStake', data, function() {});
 }
 
@@ -138,7 +155,7 @@ function updateGameMap(data) {
             strokeColor: "red",
             strokeWeight: 1.5,
             geodesic: true, //set to false if you want straight line instead of arc
-            setPath: [redStakeList[0].position, redStakeList[1].position],
+            path: [redStakeList[0].position, redStakeList[1].position],
             map: map
         });
     }
@@ -149,7 +166,7 @@ function updateGameMap(data) {
             strokeOpacity: 1,
             strokeWeight: 1.5,
             geodesic: true, //set to false if you want straight line instead of arc
-            setPath: [blueStakeList[0].position, blueStakeList[1].position],
+            path: [blueStakeList[0].position, blueStakeList[1].position],
             map: map
         });
     }
@@ -181,6 +198,8 @@ function updateGameMap(data) {
             blueTriangleCounter += areaOfTriangle;
         }
         gameData.allDrawing.push(triangle);
+		
+		
     }
 
 
@@ -231,6 +250,9 @@ function updateGameMap(data) {
      
      });
      */
+	 
+	isSendingStakeFlag = false;
+	$.mobile.loading( 'hide' );
 }
 
 
