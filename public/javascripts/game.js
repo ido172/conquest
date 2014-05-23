@@ -106,6 +106,8 @@ function sendStakeButton() {
         }, {enableHighAccuracy: true} );
     } else {
         // Browser doesn't support Geolocation
+		isSendingStakeFlag = false;
+		$.mobile.loading( 'hide' );
         handleNoGeolocation(false);
     }
 }
